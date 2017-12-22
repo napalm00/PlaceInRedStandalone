@@ -11,6 +11,15 @@
 // Windows Header Files:
 #include <windows.h>
 
-
-
-// TODO: reference additional headers your program requires here
+#include <stdio.h>
+#include <stdlib.h>
+#include <intrin.h>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <Psapi.h>
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <iterator>
+#include "./libs/MinHook/MinHook.h"
