@@ -13,12 +13,13 @@ Released with his permission and collaboration.
 * Set zoom/rotation speed when placing the object in the workshop
 * Enable achievements for modded games
 * Settings holotape given to the player automatically to configure the various parameters
-* Settings saved in .ini file within `Fallout 4 VR/Data` folder, they can be edited manually or through the holotape
+* Settings saved in .ini file within the `Fallout 4 VR/Data` folder, they can be edited manually or through the holotape
 
 ## Installation
 1. Download the latest version from the [releases page](https://github.com/napalm00/PlaceInRedStandalone/releases)
 2. Unzip the contents in your `Fallout 4 VR` directory, making sure you replace `steam_api64.dll` and that, after unpacking, you also have `steam_api64_org.dll`
-3. Start the game and ejoy!
+3. Load the .esp like any other mod
+4. Start the game and ejoy!
 
 ## Settings
 To change the settings you can:
