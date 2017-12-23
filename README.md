@@ -1,4 +1,4 @@
-# Place In Red: Standalone
+# Place In Red: Standalone (FO4VR Only)
 Standalone (no Cheat Engine required) version of [PapaRadroach](https://www.reddit.com/user/PapaRadroach)'s excellent [Place in Red](https://www.reddit.com/r/fo4vr/comments/7kjphn/place_in_red_for_fallout_4_vr_released/) mod.
 Released with his permission and collaboration.
 
