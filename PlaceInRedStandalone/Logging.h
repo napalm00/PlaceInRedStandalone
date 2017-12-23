@@ -17,10 +17,43 @@
 */
 
 #pragma once
+#include "stdafx.h"
 
-// Including SDKDDKVer.h defines the highest available Windows platform.
+class Logging
+{
+public:
+	static void LogMessage(const char* format, ...)
+	{
+		char messageBuf[1024] = {0};
+		va_list argptr;
+		va_start(argptr, format);
+		vsnprintf(messageBuf, 1024, format, argptr);
+		va_end(argptr);
 
-// If you wish to build your application for a previous Windows platform, include WinSDKVer.h and
-// set the _WIN32_WINNT macro to the platform you wish to support before including SDKDDKVer.h.
+		HANDLE hFile;
+		DWORD dwBytesWritten = 0;
+		BOOL bErrorFlag = FALSE;
 
-#include <SDKDDKVer.h>
+		hFile = CreateFile(L"./placeinredstandalone.log",                // name of the write
+			FILE_APPEND_DATA,          // open for writing
+			0,                      // do not share
+			NULL,                   // default security
+			OPEN_ALWAYS,             // create new file only
+			FILE_ATTRIBUTE_NORMAL,  // normal file
+			NULL);                  // no attr. template
+
+		if(hFile == INVALID_HANDLE_VALUE)
+		{
+			return;
+		}
+
+		bErrorFlag = WriteFile(
+			hFile,           // open file handle
+			messageBuf,      // start of data to write
+			strlen(messageBuf),  // number of bytes to write
+			&dwBytesWritten, // number of bytes that were written
+			NULL);            // no overlapped structure
+
+		CloseHandle(hFile);
+	}
+};
