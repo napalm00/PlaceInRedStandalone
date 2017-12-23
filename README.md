@@ -1,7 +1,7 @@
 ![Place in Red: Standalone (VR)](https://i.imgur.com/Neqr57p.jpg)
 
 # Place In Red: Standalone (FO4VR Only)
-Standalone (no Cheat Engine required) version of [PapaRadroach](https://www.reddit.com/user/PapaRadroach)'s excellent [Place in Red](https://www.reddit.com/r/fo4vr/comments/7kjphn/place_in_red_for_fallout_4_vr_released/) mod.
+Standalone (no Cheat Engine required) version of [RandyConstan](https://www.nexusmods.com/fallout4/users/29852470)'s excellent [Place in Red](https://www.nexusmods.com/fallout4/mods/28570/) mod.
 Released with his permission and collaboration.
 
 ## Features
@@ -48,7 +48,7 @@ To compile the `.esp`, use the [Creation Kit](https://www.creationkit.com/fallou
 
 
 ## Credits
-* [PapaRadroach](https://www.reddit.com/user/PapaRadroach): Making the original Place in Red mod, add-holotape-to-inventory script, lots of support with the Creation Kit
+* [RandyConstan](https://www.nexusmods.com/fallout4/users/29852470): Making the original Place in Red mod, add-holotape-to-inventory script, lots of support with the Creation Kit
 * [naPalm](https://github.com/napalm00): Porting Place in Red to a standalone DLL mod, reversing globals, settings holotape
 * gir489/NTAuthority/DarthTon/Forza: The various pattern scanning functions in `Pattern.h`
 * [Tsuda Kageyu](https://github.com/TsudaKageyu): [MinHook library](https://github.com/TsudaKageyu/minhook)
