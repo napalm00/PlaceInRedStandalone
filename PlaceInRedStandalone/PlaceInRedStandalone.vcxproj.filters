@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\MinHook">
+      <UniqueIdentifier>{0190352f-9a8d-460b-80fd-55eab28a9410}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\simpleini">
+      <UniqueIdentifier>{ed5bad59-9e54-49c9-b585-297c2b947df8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -28,7 +34,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libs\MinHook\MinHook.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\simpleini\SimpleIni.h">
+      <Filter>Header Files\simpleini</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

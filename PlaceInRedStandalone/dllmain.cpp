@@ -4,6 +4,10 @@
 #define MAX_TRIES 100 // Maximum number of times to sigscan before giving up
 #define SIGSCAN_DELAY 500 // Delay between each (failed) sigscan attempt in milliseconds
 #define TITLE "Place in Red - Standalone"
+#define INI_PATH "./Data/PlaceInRedStandalone.ini"
+#define GLOBAL_PREFIX std::string("PIRS_")
+
+// #define DEBUG 1
 
 #include "stdafx.h"
 #include "Pattern.h"
@@ -11,6 +15,55 @@
 #pragma comment(lib, "libs/MinHook/libMinHook.x64.lib")
 #pragma pack(1)
 
+/*
+SetGlobalValue
+
+48 ? ? ? 08  57 48 83 EC 40 41 ? ? 10 8B FA 48 8B D9 C1 ? ? A8 01
+
+<Address>Fallout4VR.exe+1454B50</Address>
+
+
+Fallout4.flexMakeShapeFlags+119B270 - 48 89 5C 24 08        - mov [rsp+08],rbx
+Fallout4.flexMakeShapeFlags+119B275 - 57                    - push rdi
+Fallout4.flexMakeShapeFlags+119B276 - 48 83 EC 40           - sub rsp,40 { 64 }
+Fallout4.flexMakeShapeFlags+119B27A - 41 8B 40 10           - mov eax,[r8+10]
+Fallout4.flexMakeShapeFlags+119B27E - 8B FA                 - mov edi,edx
+Fallout4.flexMakeShapeFlags+119B280 - 48 8B D9              - mov rbx,rcx
+Fallout4.flexMakeShapeFlags+119B283 - C1 E8 06              - shr eax,06 { 6 }
+Fallout4.flexMakeShapeFlags+119B286 - A8 01                 - test al,01 { 1 }
+Fallout4.flexMakeShapeFlags+119B288 - 75 11                 - jne Fallout4.flexMakeShapeFlags+119B29B
+Fallout4.flexMakeShapeFlags+119B28A - F3 41 0F11 58 30      - movss [r8+30],xmm3
+Fallout4.flexMakeShapeFlags+119B290 - 48 8B 5C 24 50        - mov rbx,[rsp+50]
+Fallout4.flexMakeShapeFlags+119B295 - 48 83 C4 40           - add rsp,40 { 64 }
+Fallout4.flexMakeShapeFlags+119B299 - 5F                    - pop rdi
+Fallout4.flexMakeShapeFlags+119B29A - C3                    - ret
+*/
+
+typedef int(__fastcall *SetGlobalValue)(DWORD64*, unsigned int, DWORD64*, float);
+
+// Original function
+SetGlobalValue pSetGlobalValueOrig = NULL;
+
+
+bool g_bPlaceInRed = true;
+bool g_bDisableObjectSnap = false;
+bool g_bDisableGroundSnap = false;
+bool g_bDisableObjectHighlighting = false;
+float g_fObjectZoomSpeed = 10.0f;
+float g_fObjectRotationSpeed = 5.0f;
+bool g_bEnableAchievementsModded = true;
+
+std::map<std::string, DWORD64> g_pointersMap;
+
+typedef struct
+{
+	BYTE pad0[0x20];
+	char* name; // 0x20
+	BYTE pad1[0x08];
+	float value; // 0x30
+} GlobalData;
+
+#ifdef DEBUG
 void LogMessage(const char* format, ...)
 {
 	char messageBuf[1024] = {0};
@@ -45,6 +98,7 @@ void LogMessage(const char* format, ...)
 
 	CloseHandle(hFile);
 }
+#endif
 
 void patchMemory(DWORD64 address, std::vector<BYTE> patchBytes)
 {
@@ -56,52 +110,282 @@ void patchMemory(DWORD64 address, std::vector<BYTE> patchBytes)
 	if(VirtualProtect(pAddress, patchBytes.size(), PAGE_EXECUTE_READWRITE, &oldProtect)) // make memory writable
 	{
 		memcpy((void*)address, patchBytes.data(), patchBytes.size());
-		VirtualProtect(pAddress, 6, oldProtect, NULL); // reprotect
+		VirtualProtect(pAddress, patchBytes.size(), oldProtect, NULL); // reprotect
 	}
 }
 
-/*
-SetGlobalValue
-
-48 ? ? ? 08  57 48 83 EC 40 41 ? ? 10 8B FA 48 8B D9 C1 ? ? A8 01
-
-<Address>Fallout4VR.exe+1454B50</Address>
-
-
-Fallout4.flexMakeShapeFlags+119B270 - 48 89 5C 24 08        - mov [rsp+08],rbx
-Fallout4.flexMakeShapeFlags+119B275 - 57                    - push rdi
-Fallout4.flexMakeShapeFlags+119B276 - 48 83 EC 40           - sub rsp,40 { 64 }
-Fallout4.flexMakeShapeFlags+119B27A - 41 8B 40 10           - mov eax,[r8+10]
-Fallout4.flexMakeShapeFlags+119B27E - 8B FA                 - mov edi,edx
-Fallout4.flexMakeShapeFlags+119B280 - 48 8B D9              - mov rbx,rcx
-Fallout4.flexMakeShapeFlags+119B283 - C1 E8 06              - shr eax,06 { 6 }
-Fallout4.flexMakeShapeFlags+119B286 - A8 01                 - test al,01 { 1 }
-Fallout4.flexMakeShapeFlags+119B288 - 75 11                 - jne Fallout4.flexMakeShapeFlags+119B29B
-Fallout4.flexMakeShapeFlags+119B28A - F3 41 0F11 58 30      - movss [r8+30],xmm3
-Fallout4.flexMakeShapeFlags+119B290 - 48 8B 5C 24 50        - mov rbx,[rsp+50]
-Fallout4.flexMakeShapeFlags+119B295 - 48 83 C4 40           - add rsp,40 { 64 }
-Fallout4.flexMakeShapeFlags+119B299 - 5F                    - pop rdi
-Fallout4.flexMakeShapeFlags+119B29A - C3                    - ret
-*/
-
-typedef int(__fastcall *SetGlobalValue)(DWORD64*, unsigned int, DWORD64*, float);
-
-// Original function
-SetGlobalValue pSetGlobalValueOrig = NULL;
-
-typedef struct
+void EnablePlaceInRed()
 {
-	BYTE pad0[0x20];
-	char* name; // 0x20
-	BYTE pad1[0x08];
-	float value; // 0x30
-} GlobalData;
+	patchMemory(g_pointersMap["PTR01_A"] + 0x06, {0x00});
+	patchMemory(g_pointersMap["PTR01_A"] + 0x0C, {0x01});
+	patchMemory(g_pointersMap["PTR02_B"] + 0x01, {0x00});
+	patchMemory(g_pointersMap["PTR02_C"], {0xEB});
+	patchMemory(g_pointersMap["PTR03_A"] + 0x02, {0x01});
+	patchMemory(g_pointersMap["PTR03_D"] + 0x01, {0x01});
+	patchMemory(g_pointersMap["PTR03_E"] + 0x01, {0x01});
+	patchMemory(g_pointersMap["PTR03_F"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["PTR03_H"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["PTR03_J"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["PTR03_K"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["PTR03_L"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["PTR03_M"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["PTR03_N"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["PTR03_O"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["RED"] + 0x06, {0x00});
+	patchMemory(g_pointersMap["YELLOW"], {0x90, 0x90, 0x90});
+	patchMemory(g_pointersMap["WORKSHOPTIMER"] + 0x0A, {0xE9, 0xE6, 0x00, 0x00, 0x00, 0x90});
+}
 
+void DisablePlaceInRed()
+{
+	patchMemory(g_pointersMap["PTR01_A"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["PTR01_A"] + 0x0C, {0x02});
+	patchMemory(g_pointersMap["PTR02_B"] + 0x01, {0x01});
+	patchMemory(g_pointersMap["PTR02_C"], {0x74});
+	patchMemory(g_pointersMap["PTR03_A"] + 0x02, {0x09});
+	patchMemory(g_pointersMap["PTR03_D"] + 0x01, {0x07});
+	patchMemory(g_pointersMap["PTR03_E"] + 0x01, {0x04});
+	patchMemory(g_pointersMap["PTR03_F"] + 0x06, {0x00});
+	patchMemory(g_pointersMap["PTR03_H"] + 0x06, {0x03});
+	patchMemory(g_pointersMap["PTR03_J"] + 0x06, {0x06});
+	patchMemory(g_pointersMap["PTR03_K"] + 0x06, {0x08});
+	patchMemory(g_pointersMap["PTR03_L"] + 0x06, {0x0A});
+	patchMemory(g_pointersMap["PTR03_M"] + 0x06, {0x0B});
+	patchMemory(g_pointersMap["PTR03_N"] + 0x06, {0x0C});
+	patchMemory(g_pointersMap["PTR03_O"] + 0x06, {0x0D});
+	patchMemory(g_pointersMap["RED"] + 0x06, {0x01});
+	patchMemory(g_pointersMap["YELLOW"], {0x8B, 0x58, 0x14});
+	patchMemory(g_pointersMap["WORKSHOPTIMER"] + 0x0A, {0x0F, 0x84, 0xE5, 0x00, 0x00, 0x00});
+}
+
+void EnableObjectSnap()
+{
+	*(float*)(g_pointersMap["_aob_object_snap"] + ((*(int*)((BYTE*)(g_pointersMap["_aob_object_snap"] + 4))) + 8)) = 48.0f;
+	patchMemory(g_pointersMap["_aob_object_snapavskip"] + 0x0C, {0x77, 0x10});
+}
+
+void DisableObjectSnap()
+{
+	*(float*)(g_pointersMap["_aob_object_snap"] + ((*(int*)((BYTE*)(g_pointersMap["_aob_object_snap"] + 4))) + 8)) = 0.0f;
+	patchMemory(g_pointersMap["_aob_object_snapavskip"] + 0x0C, {0xEB, 0x01});
+}
+
+void EnableGroundSnap()
+{
+	patchMemory(g_pointersMap["_aob_groundsnap"], {0x0F, 0x86});
+}
+
+void DisableGroundSnap()
+{
+	patchMemory(g_pointersMap["_aob_groundsnap"], {0x0F, 0x85});
+}
+
+void EnableObjectHighlighting()
+{
+	patchMemory(g_pointersMap["_aob_outlines"] + 0x06, {0x01});
+}
+
+void DisableObjectHighlighting()
+{
+	patchMemory(g_pointersMap["_aob_outlines"] + 0x06, {0x00});
+}
+
+void SetZoomSpeed(float value)
+{
+	*(float*)(g_pointersMap["_aob_zoom"] + ((*(int*)((BYTE*)(g_pointersMap["_aob_zoom"] + 4))) + 8)) = value;
+}
+
+void SetRotateSpeed(float value)
+{
+	*(float*)(g_pointersMap["_aob_rotate"] + ((*(int*)((BYTE*)(g_pointersMap["_aob_rotate"] + 4))) + 8)) = value;
+}
+
+void EnableModdedAchievements()
+{
+	patchMemory(g_pointersMap["_aob_achievements"], {0xB0, 0x00, 0xC3, 0x90, 0x90, 0x90});
+}
+
+void DisableModdedAchievements()
+{
+	patchMemory(g_pointersMap["_aob_achievements"], {0x40, 0x57, 0x48, 0x83, 0xEC, 0x30});
+}
+
+
+bool SaveSetting(const char* section, const char* key, const char* value)
+{
+	CSimpleIniA ini;
+	ini.SetUnicode();
+
+	SI_Error result = ini.LoadFile(INI_PATH);
+	if(result < 0)
+	{
+		return false;
+	}
+
+	result = ini.SetValue(section, key, value);
+	if(result < 0)
+	{
+		return false;
+	}
+
+	ini.SaveFile(INI_PATH);
+	if(result < 0)
+	{
+		return false;
+	}
+
+	return true;
+}
 
 int __fastcall SetGlobalValueHook(DWORD64* unk1, unsigned int unk2, DWORD64* globalValuePtr, float newValue)
 {
+	static bool bIsInitializing = false;
 	GlobalData* pGlobalData = (GlobalData*)globalValuePtr;
-	LogMessage("name = %s, const = %i, old value = %f, new value = %f\r\n", pGlobalData->name, (*(DWORD64*)(globalValuePtr + 16) >> 6) & 1 ? 1 : 0, pGlobalData->value, newValue);
+	std::string sName = std::string(pGlobalData->name);
+
+	// is_const = (*(DWORD64*)(globalValuePtr + 16) >> 6) & 1 ? 1 : 0
+
+#ifdef DEBUG
+	LogMessage("sName = %s\r\n", sName.c_str());
+#endif
+	if(sName.compare(0, GLOBAL_PREFIX.length(), GLOBAL_PREFIX) == 0) // begins with GLOBAL_PREFIX
+	{
+		std::string sSettingName = sName.substr(GLOBAL_PREFIX.length());
+		std::string sSectionName = "Workshop";
+		
+		if(sSettingName == "InitFromConfig")
+		{
+			bIsInitializing = (newValue == 1);
+#ifdef DEBUG
+			LogMessage("InitFromConfig bIsInitializing= %i\r\n", bIsInitializing);
+#endif
+			return pSetGlobalValueOrig(unk1, unk2, globalValuePtr, newValue);
+		}
+
+		if(sSettingName == "bPlaceInRed")
+		{
+			if(bIsInitializing)
+			{
+				newValue = g_bPlaceInRed;
+			}
+			else
+			{
+				if(newValue == 1.0)
+				{
+					EnablePlaceInRed();
+				}
+				else
+				{
+					DisablePlaceInRed();
+				}
+			}
+		}
+		else if(sSettingName == "bDisableObjectSnap")
+		{
+			if(bIsInitializing)
+			{
+				newValue = g_bDisableObjectSnap;
+			}
+			else
+			{
+				if(newValue == 1.0)
+				{
+					DisableObjectSnap();
+				}
+				else
+				{
+					EnableObjectSnap();
+				}
+			}
+		}
+		else if(sSettingName == "bDisableGroundSnap")
+		{
+			if(bIsInitializing)
+			{
+				newValue = g_bDisableGroundSnap;
+			}
+			else
+			{
+				if(newValue == 1.0)
+				{
+					DisableGroundSnap();
+				}
+				else
+				{
+					EnableGroundSnap();
+				}
+			}
+		}
+		else if(sSettingName == "bDisableObjectHighlighting")
+		{
+			if(bIsInitializing)
+			{
+				newValue = g_bDisableObjectHighlighting;
+			}
+			else
+			{
+				if(newValue == 1.0)
+				{
+					DisableObjectHighlighting();
+				}
+				else
+				{
+					EnableObjectHighlighting();
+				}
+			}
+		}
+		else if(sSettingName == "fObjectZoomSpeed")
+		{
+			if(bIsInitializing)
+			{
+				newValue = g_fObjectZoomSpeed;
+			}
+			else
+			{
+				SetZoomSpeed(newValue);
+			}
+		}
+		else if(sSettingName == "fObjectRotationSpeed")
+		{
+			if(bIsInitializing)
+			{
+				newValue = g_fObjectRotationSpeed;
+			}
+			else
+			{
+				SetRotateSpeed(newValue);
+			}
+		}
+		else if(sSettingName == "bEnableAchievementsModded")
+		{
+			sSectionName = "Misc";
+
+			if(bIsInitializing)
+			{
+				newValue = g_bEnableAchievementsModded;
+			}
+			else
+			{
+				if(newValue == 1.0)
+				{
+					EnableModdedAchievements();
+				}
+				else
+				{
+					DisableModdedAchievements();
+				}
+			}
+		}
+
+		if(!bIsInitializing)
+		{
+			SaveSetting(sSectionName.c_str(), sSettingName.c_str(), std::to_string(newValue).c_str());
+		}
+
+#ifdef DEBUG
+		LogMessage("unk1 = %X, sName = %s, sSettingName = %s, value = %f\r\n", unk1, sName.c_str(), sSettingName.c_str(), newValue);
+#endif
+	}
 
 	return pSetGlobalValueOrig(unk1, unk2, globalValuePtr, newValue);
 }
@@ -119,6 +403,98 @@ DWORD __stdcall WorkerThread(HANDLE mainProcess)
 	{
 		MessageBoxA(NULL, "GetModuleInformation failed", TITLE, MB_ICONERROR);
 		return NULL;
+	}
+
+	CSimpleIniA ini;
+	ini.SetUnicode();
+	SI_Error result = ini.LoadFile(INI_PATH);
+	CSimpleIniA::TNamesDepend sections;
+	if(result >= 0)
+	{ 
+		ini.GetAllSections(sections);
+	}
+
+	if(sections.empty())
+	{
+		result = ini.SetValue("Workshop", NULL, NULL);
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create section Workshop", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+
+		result = ini.SetValue("Misc", NULL, NULL);
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create section Misc", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+
+		result = ini.SetValue("Workshop", "bPlaceInRed", std::to_string((int)g_bPlaceInRed).c_str());
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create key bPlaceInRed", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+
+		result = ini.SetValue("Workshop", "bDisableObjectSnap", std::to_string((int)g_bDisableObjectSnap).c_str());
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create key bDisableObjectSnap", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+
+		result = ini.SetValue("Workshop", "bDisableGroundSnap", std::to_string((int)g_bDisableGroundSnap).c_str());
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create key bDisableGroundSnap", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+
+		result = ini.SetValue("Workshop", "bDisableObjectHighlighting", std::to_string(g_bDisableObjectHighlighting).c_str());
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create key bDisableObjectHighlighting", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+
+		result = ini.SetValue("Workshop", "fObjectZoomSpeed", std::to_string(g_fObjectZoomSpeed).c_str());
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create key fObjectZoomSpeed", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+
+		result = ini.SetValue("Workshop", "fObjectRotationSpeed", std::to_string(g_fObjectRotationSpeed).c_str());
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create key fObjectRotationSpeed", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+
+		result = ini.SetValue("Misc", "bEnableAchievementsModded", std::to_string((int)g_bEnableAchievementsModded).c_str());
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create key bEnableAchievementsModded", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+
+		result = ini.SaveFile(INI_PATH);
+		if(result < 0)
+		{
+			MessageBoxA(NULL, "INI: Failed to create the ini file", TITLE, MB_ICONERROR);
+			return NULL;
+		}
+	}
+	else
+	{
+		g_bPlaceInRed = atoi(ini.GetValue("Workshop", "bPlaceInRed", std::to_string((int)g_bPlaceInRed).c_str())) > 0;
+		g_bDisableObjectSnap = atoi(ini.GetValue("Workshop", "bDisableObjectSnap", std::to_string((int)g_bDisableObjectSnap).c_str())) > 0;
+		g_bDisableGroundSnap = atoi(ini.GetValue("Workshop", "bDisableGroundSnap", std::to_string((int)g_bDisableGroundSnap).c_str())) > 0;
+		g_bDisableObjectHighlighting = atoi(ini.GetValue("Workshop", "bDisableObjectHighlighting", std::to_string((int)g_bDisableObjectHighlighting).c_str())) > 0;
+		g_fObjectZoomSpeed = strtof(ini.GetValue("Workshop", "fObjectZoomSpeed", std::to_string(g_fObjectZoomSpeed).c_str()), NULL);
+		g_fObjectRotationSpeed = strtof(ini.GetValue("Workshop", "fObjectRotationSpeed", std::to_string(g_fObjectRotationSpeed).c_str()), NULL);
+		g_bEnableAchievementsModded = atoi(ini.GetValue("Misc", "bEnableAchievementsModded", std::to_string((int)g_bEnableAchievementsModded).c_str())) > 0;
 	}
 
 	DWORD64 dwBaseSigScan = NULL;
@@ -140,32 +516,39 @@ DWORD __stdcall WorkerThread(HANDLE mainProcess)
 
 	if(dwBaseSigScan)
 	{
-		std::map<std::string, DWORD64> pointersMap;
+		Sleep(2000);
 
-		pointersMap["PTR01_A"] = dwBaseSigScan;
-		pointersMap["PTR02_A"] = Pattern::Scan(mainModuleInfo, "40 88 35 ? ? ? ? C6 05 ? ? ? ? 01 40 88 35 ? ? ? ? 48 85 FF");
-		pointersMap["PTR02_B"] = Pattern::Scan(mainModuleInfo, "B2 01 88 15 ? ? ? ? EB 04 84 D2 74 07 C6 85");
-		pointersMap["PTR02_C"] = Pattern::Scan(mainModuleInfo, "74 0C B0 01 B1 03 88 05 ? ? ? ? EB 0F 32 C0");
-		pointersMap["PTR02_E"] = Pattern::Scan(mainModuleInfo, "0F 95 05 ? ? ? ? E8 ? ? ? ? 40 38 3D");
-		pointersMap["PTR03_A"] = Pattern::Scan(mainModuleInfo, "41 B8 09 00 00 00 84 D2 41 0F 44 C8 88 0D");
-		pointersMap["PTR03_B"] = Pattern::Scan(mainModuleInfo, "88 0D ? ? ? ? F3 0F 10 05");
-		pointersMap["PTR03_C"] = Pattern::Scan(mainModuleInfo, "88 05 ? ? ? ? 48 85 ED 0F 84 ? ? ? ? 48 8B CD E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 40 38 35");
-		pointersMap["PTR03_D"] = Pattern::Scan(mainModuleInfo, "B8 07 00 00 00 40 84 FF 0F 44 C8 88 0D");
-		pointersMap["PTR03_E"] = Pattern::Scan(mainModuleInfo, "B9 04 00 00 00 0F B6 F8 0F B6 05 ? ? ? ? 40 84 FF 0F 44 C1 88");
-		pointersMap["PTR03_F"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 00 48 C7 45 C7 ? ? ? ? E8 ? ? ? ? 48 8B 5D C7 83 CE FF 48 85 DB 0F 84");
-		pointersMap["PTR03_H"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 03 48 8B 05 ? ? ? ? 80");
-		pointersMap["PTR03_J"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 06 E9 ? ? ? ? 45 84 F6");
-		pointersMap["PTR03_K"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 08 E9 ? ? ? ? 45 32 F6 48 8B 8D");
-		pointersMap["PTR03_L"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 0A E9 ? ? ? ? 45");
-		pointersMap["PTR03_M"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 0B E9 ? ? ? ? 45");
-		pointersMap["PTR03_N"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 0C E9 ? ? ? ? C6");
-		pointersMap["PTR03_O"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 0D");
-		pointersMap["PTR04_A"] = Pattern::Scan(mainModuleInfo, "88 05 ? ? ? ? 88 44 24 70 E8 ? ? ? ? 48 8D 54 24 70");
-		pointersMap["YELLOW"] = Pattern::Scan(mainModuleInfo, "8B 58 14 48 8D 4C 24 30 45 33 C0 8B D3 E8");
-		pointersMap["RED"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 01 F3 0F 11 05 ? ? ? ? 0F 28");
-		pointersMap["WORKSHOPTIMER"] = Pattern::Scan(mainModuleInfo, "48 81 EC 38 01 00 00 48 85 C9 0F 84 E5 00 00 00");
-
-		for(auto it = pointersMap.begin(); it != pointersMap.end(); it++)
+		g_pointersMap["PTR01_A"] = dwBaseSigScan;
+		g_pointersMap["PTR02_A"] = Pattern::Scan(mainModuleInfo, "40 88 35 ? ? ? ? C6 05 ? ? ? ? 01 40 88 35 ? ? ? ? 48 85 FF");
+		g_pointersMap["PTR02_B"] = Pattern::Scan(mainModuleInfo, "B2 01 88 15 ? ? ? ? EB 04 84 D2 74 07 C6 85");
+		g_pointersMap["PTR02_C"] = Pattern::Scan(mainModuleInfo, "74 0C B0 01 B1 03 88 05 ? ? ? ? EB 0F 32 C0");
+		g_pointersMap["PTR02_E"] = Pattern::Scan(mainModuleInfo, "0F 95 05 ? ? ? ? E8 ? ? ? ? 40 38 3D");
+		g_pointersMap["PTR03_A"] = Pattern::Scan(mainModuleInfo, "41 B8 09 00 00 00 84 D2 41 0F 44 C8 88 0D");
+		g_pointersMap["PTR03_B"] = Pattern::Scan(mainModuleInfo, "88 0D ? ? ? ? F3 0F 10 05");
+		g_pointersMap["PTR03_C"] = Pattern::Scan(mainModuleInfo, "88 05 ? ? ? ? 48 85 ED 0F 84 ? ? ? ? 48 8B CD E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 40 38 35");
+		g_pointersMap["PTR03_D"] = Pattern::Scan(mainModuleInfo, "B8 07 00 00 00 40 84 FF 0F 44 C8 88 0D");
+		g_pointersMap["PTR03_E"] = Pattern::Scan(mainModuleInfo, "B9 04 00 00 00 0F B6 F8 0F B6 05 ? ? ? ? 40 84 FF 0F 44 C1 88");
+		g_pointersMap["PTR03_F"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 00 48 C7 45 C7 ? ? ? ? E8 ? ? ? ? 48 8B 5D C7 83 CE FF 48 85 DB 0F 84");
+		g_pointersMap["PTR03_H"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 03 48 8B 05 ? ? ? ? 80");
+		g_pointersMap["PTR03_J"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 06 E9 ? ? ? ? 45 84 F6");
+		g_pointersMap["PTR03_K"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 08 E9 ? ? ? ? 45 32 F6 48 8B 8D");
+		g_pointersMap["PTR03_L"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 0A E9 ? ? ? ? 45");
+		g_pointersMap["PTR03_M"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 0B E9 ? ? ? ? 45");
+		g_pointersMap["PTR03_N"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 0C E9 ? ? ? ? C6");
+		g_pointersMap["PTR03_O"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 0D");
+		g_pointersMap["PTR04_A"] = Pattern::Scan(mainModuleInfo, "88 05 ? ? ? ? 88 44 24 70 E8 ? ? ? ? 48 8D 54 24 70");
+		g_pointersMap["YELLOW"] = Pattern::Scan(mainModuleInfo, "8B 58 14 48 8D 4C 24 30 45 33 C0 8B D3 E8");
+		g_pointersMap["RED"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 01 F3 0F 11 05 ? ? ? ? 0F 28");
+		g_pointersMap["WORKSHOPTIMER"] = Pattern::Scan(mainModuleInfo, "48 81 EC 38 01 00 00 48 85 C9 0F 84 E5 00 00 00");
+		g_pointersMap["_aob_object_snap"] = Pattern::Scan(mainModuleInfo, "F3 0F 10 05 ? ? ? ? 89 A9 ? ? ? ? 66 89 A9");
+		g_pointersMap["_aob_object_snapavskip"] = Pattern::Scan(mainModuleInfo, "41 0F 2F C0 F3 0F 11 87 ? ? ? ? 77 10 F3 0F 10 05");
+		g_pointersMap["_aob_groundsnap"] = Pattern::Scan(mainModuleInfo, "0F 86 ? ? ? ? 49 8B 8E ? ? ? ? 4C 8D 4C 24 60 45 33 C0 49 8B D5 E8");
+		g_pointersMap["_aob_zoom"] = Pattern::Scan(mainModuleInfo, "F3 0F 10 05 ? ? ? ? 0F 29 74 24 20 F3 0F 10 35 ? ? ? ? F3 0F 59 C2");
+		g_pointersMap["_aob_rotate"] = Pattern::Scan(mainModuleInfo, "F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 59 0D ? ? ? ? 84 C9 75 07");
+		g_pointersMap["_aob_outlines"] = Pattern::Scan(mainModuleInfo, "C6 05 ? ? ? ? 01 88 15 ? ? ? ? 76 13 48 8B 05");
+		g_pointersMap["_aob_achievements"] = Pattern::Scan(mainModuleInfo, "40 57 48 83 EC 30 40 32 FF 84 D2 74 20 48");
+		
+		for(auto it = g_pointersMap.begin(); it != g_pointersMap.end(); it++)
 		{
 			if(!it->second)
 			{
@@ -176,10 +559,36 @@ DWORD __stdcall WorkerThread(HANDLE mainProcess)
 			}
 		}
 		
-		Sleep(1000);
+		if(g_bPlaceInRed)
+		{
+			EnablePlaceInRed();
+		}
+
+		if(g_bDisableObjectSnap)
+		{
+			DisableObjectSnap();
+		}
+
+		if(g_bDisableGroundSnap)
+		{
+			DisableGroundSnap();
+		}
+
+		if(g_bDisableObjectHighlighting)
+		{
+			DisableObjectHighlighting();
+		}
+
+		SetZoomSpeed(g_fObjectZoomSpeed);
+
+		SetRotateSpeed(g_fObjectRotationSpeed);
+		
+		if(g_bEnableAchievementsModded)
+		{
+			EnableModdedAchievements();
+		}
 
 		DWORD64 dwSetGlobalValueAddress = Pattern::Scan(mainModuleInfo, "48 ? ? ? 08  57 48 83 EC 40 41 ? ? 10 8B FA 48 8B D9 C1 ? ? A8 01");
-		LogMessage("dwSetGlobalValueAddress = %X\r\n", dwSetGlobalValueAddress);
 		MH_STATUS status = MH_OK;
 		if((status = MH_CreateHook((void*)dwSetGlobalValueAddress, &SetGlobalValueHook,
 			reinterpret_cast<LPVOID*>(&pSetGlobalValueOrig))) != MH_OK)
@@ -194,26 +603,7 @@ DWORD __stdcall WorkerThread(HANDLE mainProcess)
 		{
 			MessageBoxA(NULL, "MinHook hook enabling failed: SetGlobalValueHook", TITLE, MB_ICONERROR);
 			return NULL;
-		}
-
-		patchMemory(pointersMap["PTR01_A"] + 0x06, {0x00});
-		patchMemory(pointersMap["PTR01_A"] + 0x0C, {0x01});
-		patchMemory(pointersMap["PTR02_B"] + 0x01, {0x00});
-		patchMemory(pointersMap["PTR02_C"], {0xEB});
-		patchMemory(pointersMap["PTR03_A"] + 0x02, {0x01});
-		patchMemory(pointersMap["PTR03_D"] + 0x01, {0x01});
-		patchMemory(pointersMap["PTR03_E"] + 0x01, {0x01});
-		patchMemory(pointersMap["PTR03_F"] + 0x06, {0x01});
-		patchMemory(pointersMap["PTR03_H"] + 0x06, {0x01});
-		patchMemory(pointersMap["PTR03_J"] + 0x06, {0x01});
-		patchMemory(pointersMap["PTR03_K"] + 0x06, {0x01});
-		patchMemory(pointersMap["PTR03_L"] + 0x06, {0x01});
-		patchMemory(pointersMap["PTR03_M"] + 0x06, {0x01});
-		patchMemory(pointersMap["PTR03_N"] + 0x06, {0x01});
-		patchMemory(pointersMap["PTR03_O"] + 0x06, {0x01});
-		patchMemory(pointersMap["RED"] + 0x06, {0x00});
-		patchMemory(pointersMap["YELLOW"], {0x90, 0x90, 0x90});
-		patchMemory(pointersMap["WORKSHOPTIMER"] + 0x0A, {0xE9, 0xE6, 0x00, 0x00, 0x00, 0x90});
+		}		
 	}
 	else
 	{

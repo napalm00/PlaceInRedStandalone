@@ -141,6 +141,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\MinHook\MinHook.h" />
+    <ClInclude Include="libs\simpleini\SimpleIni.h" />
     <ClInclude Include="Pattern.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />

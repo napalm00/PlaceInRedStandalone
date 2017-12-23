@@ -23,3 +23,4 @@
 #include <map>
 #include <iterator>
 #include "./libs/MinHook/MinHook.h"
+#include "./libs/simpleini/SimpleIni.h"
