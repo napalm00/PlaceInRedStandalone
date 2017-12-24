@@ -7,7 +7,7 @@ Released with his permission and collaboration.
 ## Features
 * **No Cheat Engine required!**
 * Easy drag & drop installation
-* Place workshop objects anywhere
+* Place workshop objects anywhere (within workshop bounds)
 * Disable object/ground snapping
 * Disable object highlight when using the workshop
 * Set zoom/rotation speed when placing the object in the workshop
