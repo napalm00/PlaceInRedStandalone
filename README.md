@@ -47,6 +47,12 @@ To compile the `.esp`, use the [Creation Kit](https://www.creationkit.com/fallou
 ## Known Issues
 * The settings holotape can only be played in a Terminal, not the Pip-Boy. This is a known limitation of the engine.
 
+## Changelog
+**1.1:**
+* Fixed object outline bug ([issue #1](https://github.com/napalm00/PlaceInRedStandalone/issues/1))
+
+**1.0:**
+* Initial release
 
 ## Credits
 * [RandyConstan](https://www.nexusmods.com/fallout4/users/29852470): Making the original Place in Red mod, add-holotape-to-inventory script, lots of support with the Creation Kit
