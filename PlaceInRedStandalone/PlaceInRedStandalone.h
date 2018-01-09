@@ -154,11 +154,13 @@ public:
 	void EnableObjectHighlighting()
 	{
 		MemoryUtils::PatchMemory(m_PointersMap["_aob_outlines"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["_aob_outlines"].address + 0x0D, {0x76});
 	}
 
 	void DisableObjectHighlighting()
 	{
 		MemoryUtils::PatchMemory(m_PointersMap["_aob_outlines"].address + 0x06, {0x00});
+        MemoryUtils::PatchMemory(m_PointersMap["_aob_outlines"].address + 0x0D, {0xEB});
 	}
 
 	void SetObjectZoomSpeed(float value)
