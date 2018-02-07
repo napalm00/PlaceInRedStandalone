@@ -48,6 +48,9 @@ To compile the `.esp`, use the [Creation Kit](https://www.creationkit.com/fallou
 * The settings holotape can only be played in a Terminal, not the Pip-Boy. This is a known limitation of the engine.
 
 ## Changelog
+**1.2:**
+* Fixed error caused by the beta update ([issue #2](https://github.com/napalm00/PlaceInRedStandalone/issues/2))
+
 **1.1:**
 * Fixed object outline bug ([issue #1](https://github.com/napalm00/PlaceInRedStandalone/issues/1))
 
