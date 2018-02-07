@@ -21,6 +21,10 @@
 #include "common.h"
 #include "Pattern.h"
 
+#ifdef DEBUG
+#include "Logging.h"
+#endif
+
 class MemoryUtils
 {
 public:
@@ -46,6 +50,9 @@ public:
 				if(!it->second.address)
 				{
 					pointersMap[it->first].address = Pattern::ScanFast(mi, it->second.signature);
+#ifdef DEBUG
+                    Logging::LogMessage("pointersMap sig = %s, address = 0x%X\r\n", it->first.c_str(), pointersMap[it->first].address);
+#endif
 				}
 			}
 

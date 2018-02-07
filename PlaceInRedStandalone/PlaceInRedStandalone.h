@@ -143,12 +143,12 @@ public:
 
 	void EnableGroundSnap()
 	{
-		MemoryUtils::PatchMemory(m_PointersMap["_aob_groundsnap"].address, {0x0F, 0x86});
+		MemoryUtils::PatchMemory(m_PointersMap["_aob_groundsnap"].address, {0x86});
 	}
 
 	void DisableGroundSnap()
 	{
-		MemoryUtils::PatchMemory(m_PointersMap["_aob_groundsnap"].address, {0x0F, 0x85});
+		MemoryUtils::PatchMemory(m_PointersMap["_aob_groundsnap"].address, {0x85});
 	}
 
 	void EnableObjectHighlighting()

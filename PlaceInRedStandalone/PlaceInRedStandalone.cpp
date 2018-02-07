@@ -235,7 +235,7 @@ bool PlaceInRedStandalone::Init(MODULEINFO mainModuleInfo)
 	m_PointersMap["WORKSHOPTIMER"] = PointerInfo(NULL, "48 81 EC 38 01 00 00 48 85 C9 0F 84 E5 00 00 00");
 	m_PointersMap["_aob_object_snap"] = PointerInfo(NULL, "F3 0F 10 05 ? ? ? ? 89 A9 ? ? ? ? 66 89 A9");
 	m_PointersMap["_aob_object_snapavskip"] = PointerInfo(NULL, "41 0F 2F C0 F3 0F 11 87 ? ? ? ? 77 10 F3 0F 10 05");
-	m_PointersMap["_aob_groundsnap"] = PointerInfo(NULL, "0F 86 ? ? ? ? 49 8B 8E ? ? ? ? 4C 8D 4C 24 60 45 33 C0 49 8B D5 E8");
+	m_PointersMap["_aob_groundsnap"] = PointerInfo(NULL, "86 ? ? ? ? 49 8B 8E ? ? ? ? 4C 8D 4C 24 60 45 33 C0 49 8B D5 E8 ? ? ? ? 84 C0");
 	m_PointersMap["_aob_zoom"] = PointerInfo(NULL, "F3 0F 10 05 ? ? ? ? 0F 29 74 24 20 F3 0F 10 35 ? ? ? ? F3 0F 59 C2");
 	m_PointersMap["_aob_rotate"] = PointerInfo(NULL, "F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 59 0D ? ? ? ? 84 C9 75 07");
 	m_PointersMap["_aob_outlines"] = PointerInfo(NULL, "C6 05 ? ? ? ? 01 88 15 ? ? ? ? 76 13 48 8B 05");

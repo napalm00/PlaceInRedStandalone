@@ -46,4 +46,4 @@
 #define INI_PATH "./Data/PlaceInRedStandalone.ini"
 #define GLOBAL_PREFIX std::string("PIRS_")
 
-// #define DEBUG 1
+//#define DEBUG 1
