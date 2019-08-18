@@ -1,6 +1,6 @@
 /*
 * The MIT License
-* Copyright 2017 naPalm / PapaRadroach
+* Copyright 2017-2019 naPalm / PapaRadroach
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 * to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
@@ -42,7 +42,7 @@
 
 #define MAX_TRIES 30 // Maximum number of times to sigscan before giving up
 #define SIGSCAN_DELAY 500 // Delay between each (failed) sigscan attempt in milliseconds
-#define TITLE "Place in Red - Standalone 1.0"
+#define TITLE "Place in Red - Standalone 1.2"
 #define INI_PATH "./Data/PlaceInRedStandalone.ini"
 #define GLOBAL_PREFIX std::string("PIRS_")
 

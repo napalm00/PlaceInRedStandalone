@@ -1,6 +1,6 @@
 /*
 * The MIT License
-* Copyright 2017 naPalm / PapaRadroach
+* Copyright 2017-2019 naPalm / PapaRadroach
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 * to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
@@ -62,7 +62,7 @@ public:
 		m_ConfigValues["bDisableObjectHighlighting"].valBool = false;
 		m_ConfigValues["fObjectZoomSpeed"].valFloat = 10.0f;
 		m_ConfigValues["fObjectRotationSpeed"].valFloat = 5.0f;
-		m_ConfigValues["bEnableAchievementsModded"].valBool = false;
+		m_ConfigValues["bEnableAchievementsModded"].valBool = true;
 
 		CSimpleIniA ini;
 		ini.SetUnicode();

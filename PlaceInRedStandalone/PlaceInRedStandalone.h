@@ -1,6 +1,6 @@
 /*
 * The MIT License
-* Copyright 2017 naPalm / PapaRadroach
+* Copyright 2017-2019 naPalm / PapaRadroach
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 * to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
@@ -87,7 +87,7 @@ public:
 
 	void EnablePlaceInRed()
 	{
-		MemoryUtils::PatchMemory(m_PointersMap["PTR01_A"].address + 0x06, {0x00});
+		/*MemoryUtils::PatchMemory(m_PointersMap["PTR01_A"].address + 0x06, {0x00});
 		MemoryUtils::PatchMemory(m_PointersMap["PTR01_A"].address + 0x0C, {0x01});
 		MemoryUtils::PatchMemory(m_PointersMap["PTR02_B"].address + 0x01, {0x00});
 		MemoryUtils::PatchMemory(m_PointersMap["PTR02_C"].address, {0xEB});
@@ -104,12 +104,37 @@ public:
 		MemoryUtils::PatchMemory(m_PointersMap["PTR03_O"].address + 0x06, {0x01});
 		MemoryUtils::PatchMemory(m_PointersMap["RED"].address + 0x06, {0x00});
 		MemoryUtils::PatchMemory(m_PointersMap["YELLOW"].address, {0x90, 0x90, 0x90});
-		MemoryUtils::PatchMemory(m_PointersMap["WORKSHOPTIMER"].address + 0x0A, {0xE9, 0xE6, 0x00, 0x00, 0x00, 0x90});
+		MemoryUtils::PatchMemory(m_PointersMap["WORKSHOPTIMER"].address + 0x0A, {0xE9, 0xE6, 0x00, 0x00, 0x00, 0x90});*/
+
+        MemoryUtils::PatchMemory(m_PointersMap["PTR01_A"].address + 0x06, {0x00});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_A"].address, {0xEB, 0x05});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_B"].address, {0xEB, 0x04});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_C"].address + 0x0E, {0xEB, 0x04});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_D"].address, {0xEB, 0x04});
+        //MemoryUtils::PatchMemory(m_PointersMap["PTR02_E"].address + 0x15, {0xEB, 0x05});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_E"].address, {0xEB, 0x05});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_A"].address, {0xEB, 0x04});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_B"].address, {0xEB, 0x04});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_C"].address, {0xEB, 0x04});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_D"].address, {0xEB, 0x04});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_E"].address, {0xEB, 0x04});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_F"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_H"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_I"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_J"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_K"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_L"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_M"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_N"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_O"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR04_A"].address, {0xEB, 0x04});
+        MemoryUtils::PatchMemory(m_PointersMap["RED"].address + 0x06, {0x00});
+        MemoryUtils::PatchMemory(m_PointersMap["YELLOW"].address + 0x14, {0x90, 0x90, 0x90});
 	}
 
 	void DisablePlaceInRed()
 	{
-		MemoryUtils::PatchMemory(m_PointersMap["PTR01_A"].address + 0x06, {0x01});
+		/*MemoryUtils::PatchMemory(m_PointersMap["PTR01_A"].address + 0x06, {0x01});
 		MemoryUtils::PatchMemory(m_PointersMap["PTR01_A"].address + 0x0C, {0x02});
 		MemoryUtils::PatchMemory(m_PointersMap["PTR02_B"].address + 0x01, {0x01});
 		MemoryUtils::PatchMemory(m_PointersMap["PTR02_C"].address, {0x74});
@@ -126,41 +151,64 @@ public:
 		MemoryUtils::PatchMemory(m_PointersMap["PTR03_O"].address + 0x06, {0x0D});
 		MemoryUtils::PatchMemory(m_PointersMap["RED"].address + 0x06, {0x01});
 		MemoryUtils::PatchMemory(m_PointersMap["YELLOW"].address, {0x8B, 0x58, 0x14});
-		MemoryUtils::PatchMemory(m_PointersMap["WORKSHOPTIMER"].address + 0x0A, {0x0F, 0x84, 0xE5, 0x00, 0x00, 0x00});
+		MemoryUtils::PatchMemory(m_PointersMap["WORKSHOPTIMER"].address + 0x0A, {0x0F, 0x84, 0xE5, 0x00, 0x00, 0x00});*/
+
+        MemoryUtils::PatchMemory(m_PointersMap["PTR01_A"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_A"].address, {0x40, 0x88});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_B"].address, {0x88, 0x15});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_C"].address + 0x0E, {0x88, 0x05});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_D"].address, {0x88, 0x05});
+        //MemoryUtils::PatchMemory(m_PointersMap["PTR02_E"].address + 0x15, {0x0F, 0x95});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR02_E"].address, {0x0F, 0x95});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_A"].address, {0x88, 0x0D});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_B"].address, {0x88, 0x0D});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_C"].address, {0x88, 0x05});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_D"].address, {0x88, 0x0D});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_E"].address, {0x88, 0x05});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_F"].address + 0x06, {0x00});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_H"].address + 0x06, {0x03});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_I"].address + 0x06, {0x05});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_J"].address + 0x06, {0x06});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_K"].address + 0x06, {0x08});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_L"].address + 0x06, {0x0A});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_M"].address + 0x06, {0x0B});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_N"].address + 0x06, {0x0C});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR03_O"].address + 0x06, {0x0D});
+        MemoryUtils::PatchMemory(m_PointersMap["PTR04_A"].address, {0x88, 0x05});
+        MemoryUtils::PatchMemory(m_PointersMap["RED"].address + 0x06, {0x01});
+        MemoryUtils::PatchMemory(m_PointersMap["YELLOW"].address + 0x14, {0x88, 0x58, 0x14});
 	}
 
 	void EnableObjectSnap()
 	{
-		*(float*)(m_PointersMap["_aob_object_snap"].address + ((*(UINT32*)((UINT8*)(m_PointersMap["_aob_object_snap"].address + 4))) + 8)) = 48.0f;
-		MemoryUtils::PatchMemory(m_PointersMap["_aob_object_snapavskip"].address + 0x0C, {0x77, 0x10});
+        *(float*)(m_PointersMap["_aob_object_snap"].address + ((*(UINT32*)((UINT8*)(m_PointersMap["_aob_object_snap"].address + 4))) + 8)) = 0.0f;
+        MemoryUtils::PatchMemory(m_PointersMap["_aob_object_snapavskip"].address + 0x0C, {0xEB, 0x01});
 	}
 
 	void DisableObjectSnap()
 	{
-		*(float*)(m_PointersMap["_aob_object_snap"].address + ((*(UINT32*)((UINT8*)(m_PointersMap["_aob_object_snap"].address + 4))) + 8)) = 0.0f;
-		MemoryUtils::PatchMemory(m_PointersMap["_aob_object_snapavskip"].address + 0x0C, {0xEB, 0x01});
+        *(float*)(m_PointersMap["_aob_object_snap"].address + ((*(UINT32*)((UINT8*)(m_PointersMap["_aob_object_snap"].address + 4))) + 8)) = 48.0f;
+        MemoryUtils::PatchMemory(m_PointersMap["_aob_object_snapavskip"].address + 0x0C, {0x77, 0x10});
 	}
 
 	void EnableGroundSnap()
 	{
-		MemoryUtils::PatchMemory(m_PointersMap["_aob_groundsnap"].address, {0x86});
+		MemoryUtils::PatchMemory(m_PointersMap["_aob_groundsnap"].address, {0x0F, 0x86});
 	}
 
 	void DisableGroundSnap()
 	{
-		MemoryUtils::PatchMemory(m_PointersMap["_aob_groundsnap"].address, {0x85});
+		MemoryUtils::PatchMemory(m_PointersMap["_aob_groundsnap"].address, {0x0F, 0x85});
 	}
 
 	void EnableObjectHighlighting()
 	{
 		MemoryUtils::PatchMemory(m_PointersMap["_aob_outlines"].address + 0x06, {0x01});
-        MemoryUtils::PatchMemory(m_PointersMap["_aob_outlines"].address + 0x0D, {0x76});
 	}
 
 	void DisableObjectHighlighting()
 	{
 		MemoryUtils::PatchMemory(m_PointersMap["_aob_outlines"].address + 0x06, {0x00});
-        MemoryUtils::PatchMemory(m_PointersMap["_aob_outlines"].address + 0x0D, {0xEB});
 	}
 
 	void SetObjectZoomSpeed(float value)
